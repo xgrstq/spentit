@@ -63,7 +63,7 @@ npm run dev
 
 ## 🧠 Author
 
-Built with chaos and caffeine ☕ by you 😏
+Built with chaos and milk by ngodinginaja
 
 ---
 

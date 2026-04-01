@@ -1,65 +1,65 @@
 # 💸 Spentit
 
-Spentit adalah web app sederhana untuk mencatat pemasukan dan pengeluaran secara real-time.
+Spentit is a simple financial tracking web app built for managing income and expenses.
+Designed for real-world use — especially for small business workflows like buying/selling and maintenance tracking.
 
-## 🚀 Features
+## .🚀 Features
 
-* 🔐 Authentication (Email & Google)
-* 👤 Session management
-* 💸 Track income & expense (coming soon)
-* ⚡ Real-time update (planned)
+* 🔐 Authentication (Email + Google OAuth via Supabase)
+* 💰 Add income & expense transactions
+* 📝 Notes for each transaction (e.g. maintenance details)
+* ✏️ Edit & 🗑️ Delete transactions
+* 📊 Financial summary (Income, Expense, Balance)
+* 📈 Chart visualization (Expense per day)
+* ⚡ Auto update without refresh
+* 🌙 Dark UI with TailwindCSS 
+
+## 🧠 Use Case
+
+Perfect for:
+
+* Personal finance tracking
+* Small business (e.g. motorcycle trading)
+* Monitoring maintenance costs
+* Daily cash flow tracking
 
 ## 🧱 Tech Stack
 
 * ⚛️ React (Vite)
 * 🎨 Tailwind CSS v4
 * 🔥 Supabase (Auth & Database)
-* 🚀 Vercel (Deployment)
+* 🚀 Chart.js (Data visualization)
 
-## 📦 Installation
+## 📂 Project Structure
 
-Clone repository:
+src/
 
-```bash
-git clone https://github.com/username/spentit.git
-cd spentit
-```
+* components/
+  * ui/
+    * transaction/
+* hooks/
+* lib/
+* pages/
 
-Install dependencies:
+## ⚙️ Setup
 
-```bash
+* 1.Clone repo
+  
+* 2.Install dependencies
 npm install
-```
 
-Setup environment variables:
+* 3.Setup .env
+VITE_SUPABASE_URL=your_url
+VITE_SUPABASE_ANON_KEY=your_key
 
-```env
-VITE_SUPABASE_URL=your_project_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
-```
-
-Run development server:
-
-```bash
+* 4.Run project
 npm run dev
-```
 
-## 🔑 Environment Variables
+## 📊 Future Improvements
 
-| Variable               | Description              |
-| ---------------------- | ------------------------ |
-| VITE_SUPABASE_URL      | Supabase Project URL     |
-| VITE_SUPABASE_ANON_KEY | Supabase Public Anon Key |
-
-## 📌 Roadmap
-
-* [x] Setup project
-* [x] Authentication (Email & Google)
-* [x] Dashboard basic
-* [ ] Add transaction
-* [ ] Transaction list
-* [ ] Summary (income vs expense)
-* [ ] Charts & analytics
+* 🏷️ Transaction categories
+* 📅 Monthly filtering
+* 📈 Advanced analytics (profit tracking)
 
 ## 🧠 Author
 

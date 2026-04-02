@@ -40,6 +40,7 @@ src/
 * hooks/
 * lib/
 * pages/
+* utils/
 
 ## ⚙️ Setup
 

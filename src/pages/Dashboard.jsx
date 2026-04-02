@@ -6,11 +6,12 @@ import TransactionForm from "../components/ui/transaction/TransactionForm"
 import TransactionList from "../components/ui/transaction/TransactionList"
 import TransactionChart from "../components/ui/transaction/TransactionChart"
 
+import { formatRupiah } from "../utils/format"
+
 function Dashboard() {
   const { user, logout } = useAuth()
   const [transactions, setTransactions] = useState([])
 
-  // 🔥 fetch data
   const fetchData = async () => {
     if (!user) return
 
@@ -38,21 +39,29 @@ function Dashboard() {
 
   const balance = income - expense
 
-  // 📊 ADVANCED CHART (EXPENSE PER DAY)
+  // 📊 ADVANCED CHART (INCOME + EXPENSE)
   const groupedData = transactions.reduce((acc, t) => {
     const date = new Date(t.created_at).toLocaleDateString()
 
-    if (!acc[date]) acc[date] = 0
+    if (!acc[date]) {
+      acc[date] = {
+        income: 0,
+        expense: 0,
+      }
+    }
 
-    if (t.type === "expense") {
-      acc[date] += t.amount
+    if (t.type === "income") {
+      acc[date].income += t.amount
+    } else {
+      acc[date].expense += t.amount
     }
 
     return acc
   }, {})
 
   const labels = Object.keys(groupedData)
-  const dataValues = Object.values(groupedData)
+  const incomeData = labels.map((d) => groupedData[d].income)
+  const expenseData = labels.map((d) => groupedData[d].expense)
 
   return (
     <div className="min-h-screen bg-black text-white p-6">
@@ -76,23 +85,33 @@ function Dashboard() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="p-4 bg-[#111] rounded">
           <p className="text-gray-400 text-sm">Income</p>
-          <p className="text-emerald-500 font-bold">{income}</p>
+          <p className="text-emerald-500 font-bold">
+            {formatRupiah(income)}
+          </p>
         </div>
 
         <div className="p-4 bg-[#111] rounded">
           <p className="text-gray-400 text-sm">Expense</p>
-          <p className="text-red-500 font-bold">{expense}</p>
+          <p className="text-red-500 font-bold">
+            {formatRupiah(expense)}
+          </p>
         </div>
 
         <div className="p-4 bg-[#111] rounded">
           <p className="text-gray-400 text-sm">Balance</p>
-          <p className="font-bold">{balance}</p>
+          <p className="font-bold">
+            {formatRupiah(balance)}
+          </p>
         </div>
       </div>
 
-      {/* 📊 CHART */}
+      {/* CHART */}
       <div className="mb-6 bg-[#111] p-4 rounded">
-        <TransactionChart labels={labels} data={dataValues} />
+        <TransactionChart
+          labels={labels}
+          incomeData={incomeData}
+          expenseData={expenseData}
+        />
       </div>
 
       {/* FORM */}

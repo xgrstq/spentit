@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { supabase } from "../../../lib/supabase"
+import { formatRupiah } from "../../../utils/format"
 
 function TransactionList({ transactions, onDelete }) {
   const [editingId, setEditingId] = useState(null)
@@ -85,7 +86,7 @@ function TransactionList({ transactions, onDelete }) {
                       : "text-red-500"
                   }
                 >
-                  {item.type === "income" ? "+" : "-"} {item.amount}
+                  {item.type === "income" ? "+" : "-"} {formatRupiah(item.amount)}
                 </span>
               </div>
 

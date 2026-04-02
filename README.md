@@ -50,8 +50,8 @@ src/
 npm install
 
 * 3.Setup .env
-   *VITE_SUPABASE_URL=your_url
-   *VITE_SUPABASE_ANON_KEY=your_key
+   * VITE_SUPABASE_URL=your_url
+   * VITE_SUPABASE_ANON_KEY=your_key
 
 * 4.Run project
 npm run dev

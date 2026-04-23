@@ -25,7 +25,9 @@ function Dashboard() {
   }
 
   useEffect(() => {
-    fetchData()
+    if (user) {
+      fetchData()
+    }
   }, [user])
 
   // 💰 SUMMARY
@@ -39,7 +41,7 @@ function Dashboard() {
 
   const balance = income - expense
 
-  // 📊 ADVANCED CHART (INCOME + EXPENSE)
+  // 📊 CHART DATA
   const groupedData = transactions.reduce((acc, t) => {
     const date = new Date(t.created_at).toLocaleDateString()
 
@@ -63,25 +65,25 @@ function Dashboard() {
   const incomeData = labels.map((d) => groupedData[d].income)
   const expenseData = labels.map((d) => groupedData[d].expense)
 
+  // 🔥 RETURN DIPINDAH KE SINI (SETELAH HOOKS)
+  if (!user) return null
+
   return (
     <div className="min-h-screen bg-black text-white p-6">
 
-      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl">Spentit 💸</h1>
 
         <button
           onClick={logout}
-          className="bg-[#1a1a1a] px-4 py-2 rounded"
+          className="bg-[#1a1a1a] px-4 py-2 rounded hover:bg-[#222] transition"
         >
           Logout
         </button>
       </div>
 
-      {/* USER */}
       <p className="text-gray-400 mb-4">{user?.email}</p>
 
-      {/* SUMMARY */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="p-4 bg-[#111] rounded">
           <p className="text-gray-400 text-sm">Income</p>
@@ -105,7 +107,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* CHART */}
       <div className="mb-6 bg-[#111] p-4 rounded">
         <TransactionChart
           labels={labels}
@@ -114,10 +115,8 @@ function Dashboard() {
         />
       </div>
 
-      {/* FORM */}
       <TransactionForm onSuccess={fetchData} />
 
-      {/* LIST */}
       <TransactionList
         transactions={transactions}
         onDelete={fetchData}

@@ -6,25 +6,33 @@ export function useAuth() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // ambil user awal
-    supabase.auth.getUser().then((res) => {
-      setUser(res.data.user)
-      setLoading(false)
-    })
+    let isMounted = true
+
+    // ambil session awal (LEBIH STABIL)
+    const getInitialSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (isMounted) {
+        setUser(data.session?.user ?? null)
+        setLoading(false)
+      }
+    }
+
+    getInitialSession()
 
     // listen perubahan auth
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null)
-      }
-    )
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
 
     return () => {
-      listener.subscription.unsubscribe()
+      isMounted = false
+      subscription.unsubscribe()
     }
   }, [])
 
-  // login email
+  // login email (masih ada kalau nanti lo butuh lagi)
   const login = async (email, password) => {
     return await supabase.auth.signInWithPassword({
       email,
@@ -32,7 +40,6 @@ export function useAuth() {
     })
   }
 
-  // register
   const register = async (email, password) => {
     return await supabase.auth.signUp({
       email,
@@ -41,15 +48,19 @@ export function useAuth() {
   }
 
   // login google
-  const loginWithGoogle = async () => {
-    return await supabase.auth.signInWithOAuth({
-      provider: "google",
-    })
-  }
+const loginWithGoogle = async () => {
+  return await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin,
+    },
+  })
+}
 
-  // logout
+  // 🔥 logout FIXED
   const logout = async () => {
-    return await supabase.auth.signOut()
+    setUser(null) // langsung reset UI (ini kuncinya)
+    await supabase.auth.signOut()
   }
 
   return {

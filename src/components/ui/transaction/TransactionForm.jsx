@@ -2,7 +2,7 @@ import { useState } from "react"
 import { supabase } from "../../../lib/supabase"
 import { useAuth } from "../../../hooks/useAuth"
 
-function TransactionForm({ onSuccess }) {
+function TransactionForm({ onSuccess, walletId }) {
   const { user } = useAuth()
 
   const [title, setTitle] = useState("")
@@ -13,6 +13,11 @@ function TransactionForm({ onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!walletId) {
+      alert("No wallet selected")
+      return
+    }
+
     const { error } = await supabase.from("transactions").insert([
       {
         title,
@@ -20,6 +25,7 @@ function TransactionForm({ onSuccess }) {
         type,
         notes,
         user_id: user.id,
+        wallet_id: walletId, // 🔥 INI KUNCINYA
       },
     ])
 
@@ -66,7 +72,7 @@ function TransactionForm({ onSuccess }) {
         className="w-full p-2 mb-2 bg-[#111] border border-[#222] rounded"
       />
 
-      <button className="w-full bg-emerald-700 p-2 rounded">
+      <button className="w-full bg-emerald-700 p-2 rounded hover:bg-emerald-600 transition">
         Add Transaction
       </button>
     </form>

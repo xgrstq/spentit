@@ -1,40 +1,16 @@
-import { useEffect, useState } from "react"
-import { supabase } from "../lib/supabase"
+import { useState } from "react"
 import { useAuth } from "../hooks/useAuth"
+import { useWallets } from "../hooks/useWallets"
 
 function Wallets({ setPage, setSelectedWallet }) {
   const { user } = useAuth()
-  const [wallets, setWallets] = useState([])
+
+  // 🔥 HOOK LAYER
+  const { wallets, loading, create, update, remove } = useWallets(user)
+
   const [name, setName] = useState("")
   const [editingId, setEditingId] = useState(null)
   const [editName, setEditName] = useState("")
-
-  const fetchWallets = async () => {
-    if (!user) return
-
-    const { data } = await supabase
-      .from("wallets")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-
-    setWallets(data || [])
-  }
-
-  useEffect(() => {
-    fetchWallets()
-  }, [user])
-
-  const handleCreate = async () => {
-    if (!name) return
-
-    await supabase.from("wallets").insert([
-      { name, user_id: user.id },
-    ])
-
-    setName("")
-    fetchWallets()
-  }
 
   if (!user) return null
 
@@ -64,7 +40,10 @@ function Wallets({ setPage, setSelectedWallet }) {
           />
 
           <button
-            onClick={handleCreate}
+            onClick={() => {
+              create(name)
+              setName("")
+            }}
             className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 p-3 rounded text-sm transition"
           >
             Create Wallet
@@ -72,89 +51,80 @@ function Wallets({ setPage, setSelectedWallet }) {
         </div>
 
         {/* LIST */}
-        {wallets.map((w) => (
-          <div
-            key={w.id}
-            className="p-4 bg-gradient-to-b from-[#111] to-[#0a0a0a] border border-[#1f1f1f] rounded-xl mb-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-          >
+        {loading ? (
+          <p className="text-gray-500 text-sm">Loading...</p>
+        ) : (
+          wallets.map((w) => (
+            <div
+              key={w.id}
+              className="p-4 bg-gradient-to-b from-[#111] to-[#0a0a0a] border border-[#1f1f1f] rounded-xl mb-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+            >
 
-            {editingId === w.id ? (
-              <>
-                <input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full mb-2 p-2 bg-[#000] border border-[#222] rounded outline-none"
-                />
+              {editingId === w.id ? (
+                <>
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full mb-2 p-2 bg-[#000] border border-[#222] rounded outline-none"
+                  />
 
-                {/* 🔥 FIX BUTTON GAP */}
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={async () => {
-                      await supabase
-                        .from("wallets")
-                        .update({ name: editName })
-                        .eq("id", w.id)
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => {
+                        update(w.id, editName)
+                        setEditingId(null)
+                      }}
+                      className="px-3 py-1 bg-emerald-600 rounded text-sm hover:bg-emerald-500"
+                    >
+                      Save
+                    </button>
 
-                      setEditingId(null)
-                      fetchWallets()
-                    }}
-                    className="px-3 py-1 bg-emerald-600 rounded text-sm hover:bg-emerald-500"
-                  >
-                    Save
-                  </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="px-3 py-1 bg-[#222] rounded text-sm text-gray-300 hover:bg-[#2a2a2a]"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between items-center">
 
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="px-3 py-1 bg-[#222] rounded text-sm text-gray-300 hover:bg-[#2a2a2a]"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="flex justify-between items-center">
-
-                {/* CLICK DETAIL */}
-                <div
-                  onClick={() => {
-                    setSelectedWallet(w)
-                    setPage("walletDetail")
-                  }}
-                  className="cursor-pointer hover:text-emerald-400 transition"
-                >
-                  {w.name}
-                </div>
-
-                <div className="flex gap-2">
-                  <button
+                  {/* CLICK DETAIL */}
+                  <div
                     onClick={() => {
-                      setEditingId(w.id)
-                      setEditName(w.name)
+                      setSelectedWallet(w)
+                      setPage("walletDetail")
                     }}
-                    className="text-blue-400 text-sm hover:underline"
+                    className="cursor-pointer hover:text-emerald-400 transition"
                   >
-                    Edit
-                  </button>
+                    {w.name}
+                  </div>
 
-                  <button
-                    onClick={async () => {
-                      await supabase
-                        .from("wallets")
-                        .delete()
-                        .eq("id", w.id)
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingId(w.id)
+                        setEditName(w.name)
+                      }}
+                      className="text-blue-400 text-sm hover:underline"
+                    >
+                      Edit
+                    </button>
 
-                      fetchWallets()
-                    }}
-                    className="text-red-500 text-sm hover:underline"
-                  >
-                    Delete
-                  </button>
+                    <button
+                      onClick={() => remove(w.id)}
+                      className="text-red-500 text-sm hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
+
                 </div>
-
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          ))
+        )}
 
       </div>
     </div>

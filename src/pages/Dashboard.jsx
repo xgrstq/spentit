@@ -1,65 +1,39 @@
-import { useEffect, useState } from "react"
-import { supabase } from "../lib/supabase"
 import { useAuth } from "../hooks/useAuth"
+import { useTransactions } from "../hooks/useTransactions"
 
 import TransactionList from "../components/ui/transaction/TransactionList"
 import TransactionChart from "../components/ui/transaction/TransactionChart"
 
 import { formatRupiah } from "../utils/format"
+import {
+  calculateSummary,
+  getChartData,
+} from "../services/transactionService"
 
 function Dashboard({ setPage }) {
   const { user, logout } = useAuth()
-  const [transactions, setTransactions] = useState([])
 
-  const fetchData = async () => {
-    if (!user) return
+  // 🔥 HOOK LAYER
+  const { transactions, loading, refetch } = useTransactions(user)
 
-    const { data } = await supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-
-    setTransactions(data || [])
-  }
-
-  useEffect(() => {
-    if (user) fetchData()
-  }, [user])
-
-  // 💰 SUMMARY
-  const income = transactions
-    .filter((t) => t.type === "income")
-    .reduce((acc, t) => acc + t.amount, 0)
-
-  const expense = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((acc, t) => acc + t.amount, 0)
-
-  const balance = income - expense
-
-  // 📊 CHART
-  const groupedData = transactions.reduce((acc, t) => {
-    const date = new Date(t.created_at).toLocaleDateString()
-
-    if (!acc[date]) acc[date] = { income: 0, expense: 0 }
-
-    if (t.type === "income") acc[date].income += t.amount
-    else acc[date].expense += t.amount
-
-    return acc
-  }, {})
-
-  const labels = Object.keys(groupedData)
-  const incomeData = labels.map((d) => groupedData[d].income)
-  const expenseData = labels.map((d) => groupedData[d].expense)
+  // 🔥 SERVICE LAYER
+  const { income, expense, balance } = calculateSummary(transactions)
+  const { labels, incomeData, expenseData } = getChartData(transactions)
 
   if (!user) return null
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-gray-500 text-sm">Loading...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex justify-center relative overflow-hidden">
 
-      {/* 🔥 BACKGROUND GLOW */}
+      {/* BACKGROUND GLOW */}
       <div className="absolute w-[500px] h-[500px] bg-emerald-500/10 blur-[120px] rounded-full top-[-100px] left-[-100px]" />
 
       {/* CONTAINER */}
@@ -138,7 +112,7 @@ function Dashboard({ setPage }) {
         {/* TRANSACTION LIST */}
         <TransactionList
           transactions={transactions}
-          onDelete={fetchData}
+          onDelete={refetch}
         />
 
       </div>

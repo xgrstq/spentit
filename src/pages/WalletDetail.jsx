@@ -1,64 +1,36 @@
-import { useEffect, useState } from "react"
-import { supabase } from "../lib/supabase"
 import { useAuth } from "../hooks/useAuth"
+import { useTransactions } from "../hooks/useTransactions"
 
 import TransactionForm from "../components/ui/transaction/TransactionForm"
 import TransactionList from "../components/ui/transaction/TransactionList"
 import TransactionChart from "../components/ui/transaction/TransactionChart"
 
 import { formatRupiah } from "../utils/format"
+import {
+  calculateSummary,
+  getChartData,
+} from "../services/transactionService"
 
 function WalletDetail({ wallet, setPage }) {
   const { user } = useAuth()
-  const [transactions, setTransactions] = useState([])
 
-  const fetchData = async () => {
-    if (!user || !wallet) return
+  const { transactions, loading, refetch } = useTransactions(
+    user,
+    wallet?.id
+  )
 
-    const { data } = await supabase
-      .from("transactions")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("wallet_id", wallet.id)
-      .order("created_at", { ascending: false })
+  const { income, expense, balance } = calculateSummary(transactions)
+  const { labels, incomeData, expenseData } = getChartData(transactions)
 
-    setTransactions(data || [])
+  if (!user || !wallet) return null
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-gray-500 text-sm">Loading...</p>
+      </div>
+    )
   }
-
-  useEffect(() => {
-    fetchData()
-  }, [wallet, user])
-
-  // 💰 SUMMARY
-  const income = transactions
-    .filter((t) => t.type === "income")
-    .reduce((acc, t) => acc + t.amount, 0)
-
-  const expense = transactions
-    .filter((t) => t.type === "expense")
-    .reduce((acc, t) => acc + t.amount, 0)
-
-  const balance = income - expense
-
-  // 📊 CHART
-  const groupedData = transactions.reduce((acc, t) => {
-    const date = new Date(t.created_at).toLocaleDateString()
-
-    if (!acc[date]) {
-      acc[date] = { income: 0, expense: 0 }
-    }
-
-    if (t.type === "income") acc[date].income += t.amount
-    else acc[date].expense += t.amount
-
-    return acc
-  }, {})
-
-  const labels = Object.keys(groupedData)
-  const incomeData = labels.map((d) => groupedData[d].income)
-  const expenseData = labels.map((d) => groupedData[d].expense)
-
-  if (!wallet) return null
 
   return (
     <div className="min-h-screen bg-black text-white flex justify-center">
@@ -66,42 +38,39 @@ function WalletDetail({ wallet, setPage }) {
 
         {/* HEADER */}
         <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={() => setPage("wallets")}
-            className="text-sm text-gray-400"
-          >
+          <button onClick={() => setPage("wallets")}>
             ← Back
           </button>
 
-          <h1 className="text-lg">{wallet.name}</h1>
+          <h1 className="text-lg font-semibold">
+            {wallet.name}
+          </h1>
         </div>
 
         {/* SUMMARY */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-          <div className="p-4 bg-[#111] rounded">
-            <p className="text-gray-400 text-sm">Income</p>
-            <p className="text-emerald-500 font-bold">
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="p-3 bg-[#111] rounded">
+            <p className="text-xs text-gray-400">Income</p>
+            <p className="text-emerald-400">
               {formatRupiah(income)}
             </p>
           </div>
 
-          <div className="p-4 bg-[#111] rounded">
-            <p className="text-gray-400 text-sm">Expense</p>
-            <p className="text-red-500 font-bold">
+          <div className="p-3 bg-[#111] rounded">
+            <p className="text-xs text-gray-400">Expense</p>
+            <p className="text-red-400">
               {formatRupiah(expense)}
             </p>
           </div>
 
-          <div className="p-4 bg-[#111] rounded">
-            <p className="text-gray-400 text-sm">Balance</p>
-            <p className="font-bold">
-              {formatRupiah(balance)}
-            </p>
+          <div className="p-3 bg-[#111] rounded">
+            <p className="text-xs text-gray-400">Balance</p>
+            <p>{formatRupiah(balance)}</p>
           </div>
         </div>
 
         {/* CHART */}
-        <div className="mb-6 bg-[#111] p-4 rounded md:h-[300px]">
+        <div className="mb-6 bg-[#111] p-4 rounded">
           <TransactionChart
             labels={labels}
             incomeData={incomeData}
@@ -109,13 +78,16 @@ function WalletDetail({ wallet, setPage }) {
           />
         </div>
 
-        {/* 🔥 ADD TRANSACTION DI SINI */}
-        <TransactionForm walletId={wallet.id} onSuccess={fetchData} />
+        {/* FORM */}
+        <TransactionForm
+          walletId={wallet.id}
+          onSuccess={refetch}
+        />
 
         {/* LIST */}
         <TransactionList
           transactions={transactions}
-          onDelete={fetchData}
+          onDelete={refetch}
         />
 
       </div>

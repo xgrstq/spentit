@@ -5,6 +5,7 @@ import Auth from "./pages/Auth"
 import Dashboard from "./pages/Dashboard"
 import Wallets from "./pages/Wallets"
 import WalletDetail from "./pages/WalletDetail"
+import About from "./pages/About"
 
 function App() {
   const { user, loading } = useAuth()
@@ -33,6 +34,10 @@ function App() {
       />
     )
   }
+
+  if (page === "about") {
+  return <About setPage={setPage} />
+}
 
   return <Dashboard setPage={setPage} />
 }

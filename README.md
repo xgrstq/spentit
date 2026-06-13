@@ -64,7 +64,7 @@ npm run dev
 
 ## 🧠 Author
 
-Built with chaos and milk by ngodinginaja
+Built with chaos and milk by ORLLAB
 
 ---
 

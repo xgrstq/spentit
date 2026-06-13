@@ -23,7 +23,7 @@ function AuthCard() {
           <span className="w-2 h-2 rounded-full bg-[#4f5d56] opacity-60 animate-pulse" />
 
           <span className="text-[11px] font-mono tracking-wider bg-[#e2e7e2] text-[#4f5d56] px-2.5 py-1 rounded-md font-medium">
-            v1.3.0
+            v1.4.0
           </span>
 
         </div>
